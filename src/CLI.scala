@@ -1,6 +1,9 @@
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
+
 import play.api.libs.json._
+
+import scala.io.Source
 
 class CLI(game: String, team: String = "" , daysAhead: Int = 0) {
   //Makes API request to Pandascore
@@ -8,7 +11,9 @@ class CLI(game: String, team: String = "" , daysAhead: Int = 0) {
   val gameAPIString: String = "&filter[videogame]=" + game
   val teamAPIString: String = "&search[name]=" + team
   var timeAPIString: String = ""
-  val token: String = "&token=Ve7csi0i-HKKXankttSUEIQxTrDVCe-_V8YVZjInY1Wo-1b9ZfY"
+  //Parses API token from config file
+  val tokenParse = Json.parse(Source.fromFile("config.json").mkString)
+  val token: String = "&token=" + (tokenParse \ "token").as[String]
   var jsonImport: String = ""
 
   if(daysAhead > 0) {
@@ -24,7 +29,7 @@ class CLI(game: String, team: String = "" , daysAhead: Int = 0) {
   val myFormat = DateTimeFormatter.ofPattern("MM/dd HH:mm")
   val parse: JsValue = Json.parse(jsonImport)
 
-
+  //Extracts team matchup and event time
   var matchup = (parse \ 0 \ "name").as[String]
   matchup = matchup.substring(matchup.indexOf(':') + 2, matchup.length)
   var matchTime = (parse \ 0 \"begin_at").as[String]
